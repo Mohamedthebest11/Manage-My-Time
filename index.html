@@ -3,34 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Time Manager</title>
+  <title>Time Manager Dashboard</title>
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 700px;
       margin: 40px auto;
       padding: 20px;
-      background-color: #f4f4f9;
-      color: #333;
+      background-color: #f0f2f5;
+      color: #1c1e21;
     }
-    h1 { color: #2c3e50; }
+    h1 { text-align: center; color: #2c3e50; }
     .card {
       background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+    }
+    /* Timer Styles */
+    .timer-display {
+      font-size: 3rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 15px 0;
+      color: #27ae60;
+    }
+    .btn-group { display: flex; justify-content: center; gap: 10px; }
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      background-color: #3498db;
+      color: white;
+      transition: 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    /* Task Styles */
+    .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    ul { list-style: none; padding: 0; }
+    li {
+      padding: 12px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 6px;
+      margin-bottom: 8px;
     }
   </style>
 </head>
 <body>
 
-  <h1>⏳ Daily Time Manager</h1>
-  
+  <h1>⏳ Time Manager Dashboard</h1>
+
+  <!-- Focus Timer -->
+  <div class="card">
+    <h2>25-Minute Focus Timer</h2>
+    <div class="timer-display" id="timer">25:00</div>
+    <div class="btn-group">
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()" style="background-color: #e67e22;">Pause</button>
+      <button onclick="resetTimer()" style="background-color: #95a5a6;">Reset</button>
+    </div>
+  </div>
+
+  <!-- Task List -->
   <div class="card">
     <h2>Today's Priorities</h2>
-    <p>Welcome! Your time management dashboard is live.</p>
+    <div class="input-group">
+      <input type="text" id="taskInput" placeholder="Add a new task...">
+      <button onclick="addTask()">Add Task</button>
+    </div>
+    <ul id="taskList"></ul>
   </div>
+
+  <script>
+    // Timer Logic
+    let timeLeft = 25 * 60;
+    let timerInterval = null;
+
+    function updateDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById('timer').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      if (timerInterval) return;
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          updateDisplay();
+        } else {
+          clearInterval(timerInterval);
+          alert("Time's up! Take a break.");
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      timeLeft = 25 * 60;
+      updateDisplay();
+    }
+
+    // Task Logic
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const li = document.createElement('li');
+      li.innerHTML = `${text} <button style="background-color:#e74c3c; padding:4px 8px;" onclick="this.parentElement.remove()">✕</button>`;
+      document.getElementById('taskList').appendChild(li);
+      input.value = '';
+    }
+  </script>
 
 </body>
 </html>
