@@ -3,67 +3,148 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage My Time</title>
-  <!-- Google Sign-In Library -->
+  <title>Time Manager</title>
+  <!-- Google Sign-In SDK -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #3b82f6;
+      --text: #f8fafc;
+      --subtext: #94a3b8;
+    }
+
     body {
+      margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: #f0f2f5;
+      background-color: var(--bg-color);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 400px;
       text-align: center;
     }
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
     }
-    .user-info { display: none; margin-top: 20px; }
-    .avatar { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; }
+
+    p {
+      color: var(--subtext);
+      font-size: 0.95rem;
+    }
+
+    /* Avatar & User Info */
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+      border: 3px solid var(--accent);
+    }
+
+    /* Dashboard UI (Hidden before login) */
+    #appDashboard {
+      display: none;
+    }
+
+    .btn-logout {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 15px;
+
+    }
+
+    .btn-logout:hover {
+      background: #dc2626;
+    }
+
+    .g_id_signin {
+      display: flex;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
   </style>
 </head>
 <body>
 
-  <h1>⏳ Manage My Time</h1>
-
-  <div class="card">
-    <h2>Sign In</h2>
+  <div class="container">
     
-    <!-- GOOGLE SIGN IN BUTTON -->
-    <div id="g_id_onload"
-         data-client_id="777146066189-09b3rp7g7bh0siie4ii48u1astsvjb29.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse">
+    <!-- 1. LOGIN SCREEN -->
+    <div id="loginScreen">
+      <h1>⏱️ Time Manager</h1>
+      <p>Sign in to access your dashboard</p>
+      
+      <!-- Google Sign-In Setup -->
+      <div id="g_id_onload"
+           data-client_id="777146066189-09b3rp7g7bh0siie4ii48u1astsvjb29.apps.googleusercontent.com"
+           data-callback="handleCredentialResponse">
+      </div>
+
+      <div class="g_id_signin" data-type="standard"></div>
     </div>
-    
-    <div class="g_id_signin" data-type="standard"></div>
 
-    <!-- PROFILE DISPLAY -->
-    <div id="userInfo" class="user-info">
+    <!-- 2. MAIN APP DASHBOARD (Revealed after sign-in) -->
+    <div id="appDashboard">
       <img id="userPic" class="avatar" src="" alt="Profile Picture">
-      <h3 id="userName"></h3>
+      <h2 id="userName">Welcome!</h2>
       <p id="userEmail"></p>
+      
+      <hr style="border-color: #334155; margin: 1.5rem 0;">
+
+      <p>🚀 <strong>Your Dashboard is Ready!</strong></p>
+      <p>Start managing your time and tasks effectively.</p>
+
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
     </div>
+
   </div>
 
   <script>
+    // Decode Google JWT Token
     function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       return JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join('')));
     }
 
+    // Called automatically after successful login
     function handleCredentialResponse(response) {
       const payload = parseJwt(response.credential);
-      document.getElementById('userName').textContent = "Welcome, " + payload.name + "!";
+
+      // Set user details
+      document.getElementById('userName').textContent = payload.name;
       document.getElementById('userEmail').textContent = payload.email;
       document.getElementById('userPic').src = payload.picture;
-      document.getElementById('userInfo').style.display = 'block';
+
+      // Hide Login, Show Dashboard
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appDashboard').style.display = 'block';
+    }
+
+    // Sign out function
+    function logout() {
+      location.reload();
     }
   </script>
 
