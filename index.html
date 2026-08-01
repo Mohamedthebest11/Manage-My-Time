@@ -1,2 +1,366 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Time Manager</title><script src="https://accounts.google.com/gsi/client" async defer></script><style>:root { --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; --text: #f8fafc; --sub: #94a3b8; --danger: #ef4444; --success: #10b981; } * { box-sizing: border-box; } body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; } .container { background: var(--card); padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); width: 100%; max-width: 440px; text-align: center; } h1, h2, h3 { margin-top: 0; } p { color: var(--sub); font-size: 0.9rem; } .avatar { width: 70px; height: 70px; border-radius: 50%; margin-bottom: 0.5rem; border: 3px solid var(--accent); } #appDashboard { display: none; } .btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; } .btn:hover { opacity: 0.9; } .btn-secondary { background: #334155; color: var(--text); margin-top: 10px; width: 100%; } .btn-secondary:hover { background: #475569; } .btn-danger { background: var(--danger); } .btn-success { background: var(--success); } .g_id_signin { display: flex; justify-content: center; margin-top: 1.5rem; } .timer-card { background: #0f172a; padding: 1.2rem; border-radius: 12px; margin: 1.2rem 0; } .timer-display { font-size: 3.2rem; font-weight: bold; font-family: monospace; color: var(--accent); margin: 8px 0; } .preset-btns { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; } .preset-btn { background: #334155; color: var(--text); border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; } .preset-btn:hover { background: var(--accent); } .timer-controls { display: flex; justify-content: center; gap: 8px; } .task-section { text-align: left; margin-top: 1.2rem; } .task-input-group { display: flex; gap: 6px; margin-bottom: 0.8rem; } .task-input-group input { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; } .task-list { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; } .task-item { background: #0f172a; padding: 8px 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.9rem; } .task-item.completed span { text-decoration: line-through; color: var(--sub); } .task-actions button { background: none; border: none; color: var(--sub); cursor: pointer; } .divider { margin: 15px 0; color: var(--sub); font-size: 0.8rem; }</style></head><body><div class="container"><div id="loginScreen"><h1>⏱️ Time Manager</h1><p>Sign in or continue as guest to start</p><div id="g_id_onload" data-client_id="YOUR_CLIENT_ID_HERE" data-callback="handleCredentialResponse"></div><div class="g_id_signin" data-type="standard"></div><div class="divider">— OR —</div><button class="btn btn-secondary" onclick="continueAsGuest()">👤 Continue as Guest</button></div><div id="appDashboard"><img id="userPic" class="avatar" src="https://via.placeholder.com/70" alt="Profile"><h2 id="userName">Welcome!</h2><p id="userEmail" style="margin-bottom: 0.5rem;"></p><div class="timer-card"><h3>Focus Timer</h3><div class="preset-btns"><button class="preset-btn" onclick="setTimer(15)">15m</button><button class="preset-btn" onclick="setTimer(25)">25m</button><button class="preset-btn" onclick="setTimer(45)">45m</button></div><div id="timerDisplay" class="timer-display">25:00</div><div class="timer-controls"><button id="startBtn" class="btn btn-success" onclick="toggleTimer()">Start</button><button class="btn" onclick="resetTimer()">Reset</button></div></div><div class="task-section"><h3>Task List</h3><div class="task-input-group"><input type="text" id="taskInput" placeholder="Add task..."><button class="btn" onclick="addTask()">Add</button></div><ul id="taskList" class="task-list"></ul></div><hr style="border-color: #334155; margin: 1.2rem 0;"><button class="btn btn-danger" onclick="logout()">Exit / Log Out</button></div></div><script>function parseJwt(t) { return JSON.parse(decodeURIComponent(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); } function handleCredentialResponse(r) { const p = parseJwt(r.credential); document.getElementById('userName').textContent = p.name; document.getElementById('userEmail').textContent = p.email; document.getElementById('userPic').src = p.picture; showDashboard(); } function continueAsGuest() { document.getElementById('userName').textContent = "Guest User"; document.getElementById('userEmail').textContent = "Guest Mode"; document.getElementById('userPic').src = "https://ui-avatars.com/api/?name=Guest+User&background=3b82f6&color=fff"; showDashboard(); } function showDashboard() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('appDashboard').style.display = 'block'; } function logout() { location.reload(); } let timerInterval = null, totalSeconds = 25 * 60, isRunning = false; function updateDisplay() { const m = Math.floor(totalSeconds / 60), s = totalSeconds % 60; document.getElementById('timerDisplay').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; } function toggleTimer() { const btn = document.getElementById('startBtn'); if (isRunning) { clearInterval(timerInterval); isRunning = false; btn.textContent = 'Start'; btn.className = 'btn btn-success'; } else { isRunning = true; btn.textContent = 'Pause'; btn.className = 'btn'; timerInterval = setInterval(() => { if (totalSeconds > 0) { totalSeconds--; updateDisplay(); } else { clearInterval(timerInterval); isRunning = false; alert('Time up!'); btn.textContent = 'Start'; btn.className = 'btn btn-success'; } }, 1000); } } function resetTimer() { clearInterval(timerInterval); isRunning = false; totalSeconds = 25 * 60; updateDisplay(); document.getElementById('startBtn').textContent = 'Start'; document.getElementById('startBtn').className = 'btn btn-success'; } function setTimer(m) { clearInterval(timerInterval); isRunning = false; totalSeconds = m *  i
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Manager</title>
+  <!-- Google Sign-In SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #3b82f6;
+      --text: #f8fafc;
+      --sub: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .container {
+      background: var(--card);
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    p {
+      color: var(--sub);
+      font-size: 0.9rem;
+    }
+
+    .avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      margin-bottom: 0.5rem;
+      border: 3px solid var(--accent);
+    }
+
+    #appDashboard {
+      display: none;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: var(--text);
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-success {
+      background: var(--success);
+    }
+
+    .g_id_signin {
+      display: flex;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+
+    .timer-card {
+      background: #0f172a;
+      padding: 1.2rem;
+      border-radius: 12px;
+      margin: 1.2rem 0;
+    }
+
+    .timer-display {
+      font-size: 3.2rem;
+      font-weight: bold;
+      font-family: monospace;
+      color: var(--accent);
+      margin: 8px 0;
+    }
+
+    .preset-btns {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .preset-btn {
+      background: #334155;
+      color: var(--text);
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .preset-btn:hover {
+      background: var(--accent);
+    }
+
+    .timer-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .task-section {
+      text-align: left;
+      margin-top: 1.2rem;
+    }
+
+    .task-input-group {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 0.8rem;
+    }
+
+    .task-input-group input {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: white;
+      outline: none;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .task-item {
+      background: #0f172a;
+      padding: 8px 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .task-item.completed span {
+      text-decoration: line-through;
+      color: var(--sub);
+    }
+
+    .task-actions button {
+      background: none;
+      border: none;
+      color: var(--sub);
+      cursor: pointer;
+    }
+
+    .divider {
+      margin: 15px 0;
+      color: var(--sub);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+      <h1>⏱️ Time Manager</h1>
+      <p>Sign in or continue as guest to start</p>
+      
+      <div id="g_id_onload" 
+           data-client_id="777146066189-09b3rp7g7bh0siie4ii48u1astsvjb29.apps.googleusercontent.com" 
+           data-callback="handleCredentialResponse">
+      </div>
+      
+      <div class="g_id_signin" data-type="standard"></div>
+      
+      <div class="divider">— OR —</div>
+      
+      <button class="btn btn-secondary" onclick="continueAsGuest()">👤 Continue as Guest</button>
+    </div>
+
+    <!-- MAIN APP DASHBOARD -->
+    <div id="appDashboard">
+      <img id="userPic" class="avatar" src="https://via.placeholder.com/70" alt="Profile">
+      <h2 id="userName">Welcome!</h2>
+      <p id="userEmail" style="margin-bottom: 0.5rem;"></p>
+
+      <!-- TIMER SECTION -->
+      <div class="timer-card">
+        <h3>Focus Timer</h3>
+        <div class="preset-btns">
+          <button class="preset-btn" onclick="setTimer(15)">15m</button>
+          <button class="preset-btn" onclick="setTimer(25)">25m</button>
+          <button class="preset-btn" onclick="setTimer(45)">45m</button>
+        </div>
+        <div id="timerDisplay" class="timer-display">25:00</div>
+        <div class="timer-controls">
+          <button id="startBtn" class="btn btn-success" onclick="toggleTimer()">Start</button>
+          <button class="btn" onclick="resetTimer()">Reset</button>
+        </div>
+      </div>
+
+      <!-- TASK LIST SECTION -->
+      <div class="task-section">
+        <h3>Task List</h3>
+        <div class="task-input-group">
+          <input type="text" id="taskInput" placeholder="Add task...">
+          <button class="btn" onclick="addTask()">Add</button>
+        </div>
+        <ul id="taskList" class="task-list"></ul>
+      </div>
+
+      <hr style="border-color: #334155; margin: 1.2rem 0;">
+      <button class="btn btn-danger" onclick="logout()">Exit / Log Out</button>
+    </div>
+
+  </div>
+
+  <script>
+    function parseJwt(t) { 
+      return JSON.parse(decodeURIComponent(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); 
+    }
+
+    function handleCredentialResponse(r) { 
+      const p = parseJwt(r.credential); 
+      document.getElementById('userName').textContent = p.name; 
+      document.getElementById('userEmail').textContent = p.email; 
+      document.getElementById('userPic').src = p.picture; 
+      showDashboard(); 
+    }
+
+    function continueAsGuest() { 
+      document.getElementById('userName').textContent = "Guest User"; 
+      document.getElementById('userEmail').textContent = "Guest Mode"; 
+      document.getElementById('userPic').src = "https://ui-avatars.com/api/?name=Guest+User&background=3b82f6&color=fff"; 
+      showDashboard(); 
+    }
+
+    function showDashboard() { 
+      document.getElementById('loginScreen').style.display = 'none'; 
+      document.getElementById('appDashboard').style.display = 'block'; 
+    }
+
+    function logout() { 
+      location.reload(); 
+    }
+
+    // TIMER LOGIC
+    let timerInterval = null;
+    let totalSeconds = 25 * 60;
+    let isRunning = false;
+
+    function updateDisplay() { 
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60; 
+      document.getElementById('timerDisplay').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`; 
+    }
+
+    function toggleTimer() { 
+      const btn = document.getElementById('startBtn'); 
+      if (isRunning) { 
+        clearInterval(timerInterval); 
+        isRunning = false; 
+        btn.textContent = 'Start'; 
+        btn.className = 'btn btn-success'; 
+      } else { 
+        isRunning = true; 
+        btn.textContent = 'Pause'; 
+        btn.className = 'btn'; 
+        timerInterval = setInterval(() => { 
+          if (totalSeconds > 0) { 
+            totalSeconds--; 
+            updateDisplay(); 
+          } else { 
+            clearInterval(timerInterval); 
+            isRunning = false; 
+            alert('Time up!'); 
+            btn.textContent = 'Start'; 
+            btn.className = 'btn btn-success'; 
+          } 
+        }, 1000); 
+      } 
+    }
+
+    function resetTimer() { 
+      clearInterval(timerInterval); 
+      isRunning = false; 
+      totalSeconds = 25 * 60; 
+      updateDisplay(); 
+      document.getElementById('startBtn').textContent = 'Start'; 
+      document.getElementById('startBtn').className = 'btn btn-success'; 
+    }
+
+    function setTimer(m) { 
+      clearInterval(timerInterval); 
+      isRunning = false; 
+      totalSeconds = m * 60; 
+      updateDisplay(); 
+      document.getElementById('startBtn').textContent = 'Start'; 
+      document.getElementById('startBtn').className = 'btn btn-success'; 
+    }
+
+    // TASK LIST LOGIC
+    function addTask() { 
+      const input = document.getElementById('taskInput');
+      const txt = input.value.trim(); 
+      if (!txt) return; 
+      
+      const li = document.createElement('li'); 
+      li.className = 'task-item'; 
+      li.innerHTML = `<span onclick="this.parentElement.classList.toggle('completed')" style="cursor:pointer;">${txt}</span><div class="task-actions"><button onclick="this.parentElement.parentElement.remove()">✕</button></div>`; 
+      
+      document.getElementById('taskList').appendChild(li); 
+      input.value = ''; 
+    }
+  </script>
+</body>
+</html>
