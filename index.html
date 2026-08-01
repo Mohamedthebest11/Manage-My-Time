@@ -3,137 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Time Manager Dashboard</title>
+  <title>Manage My Time</title>
+  <!-- Google Sign-In Library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      max-width: 700px;
+      max-width: 600px;
       margin: 40px auto;
       padding: 20px;
       background-color: #f0f2f5;
-      color: #1c1e21;
+      text-align: center;
     }
-    h1 { text-align: center; color: #2c3e50; }
     .card {
       background: white;
-      padding: 25px;
+      padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
-    /* Timer Styles */
-    .timer-display {
-      font-size: 3rem;
-      font-weight: bold;
-      text-align: center;
-      margin: 15px 0;
-      color: #27ae60;
-    }
-    .btn-group { display: flex; justify-content: center; gap: 10px; }
-    button {
-      padding: 10px 18px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      background-color: #3498db;
-      color: white;
-      transition: 0.2s;
-    }
-    button:hover { opacity: 0.9; }
-    /* Task Styles */
-    .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-    input[type="text"] {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    ul { list-style: none; padding: 0; }
-    li {
-      padding: 12px;
-      background: #f8f9fa;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: 6px;
-      margin-bottom: 8px;
-    }
+    .user-info { display: none; margin-top: 20px; }
+    .avatar { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; }
   </style>
 </head>
 <body>
 
-  <h1>⏳ Time Manager Dashboard</h1>
+  <h1>⏳ Manage My Time</h1>
 
-  <!-- Focus Timer -->
   <div class="card">
-    <h2>25-Minute Focus Timer</h2>
-    <div class="timer-display" id="timer">25:00</div>
-    <div class="btn-group">
-      <button onclick="startTimer()">Start</button>
-      <button onclick="pauseTimer()" style="background-color: #e67e22;">Pause</button>
-      <button onclick="resetTimer()" style="background-color: #95a5a6;">Reset</button>
+    <h2>Sign In</h2>
+    
+    <!-- GOOGLE SIGN IN BUTTON -->
+    <div id="g_id_onload"
+         data-client_id="777146066189-09b3rp7g7bh0siie4ii48u1astsvjb29.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
     </div>
-  </div>
+    
+    <div class="g_id_signin" data-type="standard"></div>
 
-  <!-- Task List -->
-  <div class="card">
-    <h2>Today's Priorities</h2>
-    <div class="input-group">
-      <input type="text" id="taskInput" placeholder="Add a new task...">
-      <button onclick="addTask()">Add Task</button>
+    <!-- PROFILE DISPLAY -->
+    <div id="userInfo" class="user-info">
+      <img id="userPic" class="avatar" src="" alt="Profile Picture">
+      <h3 id="userName"></h3>
+      <p id="userEmail"></p>
     </div>
-    <ul id="taskList"></ul>
   </div>
 
   <script>
-    // Timer Logic
-    let timeLeft = 25 * 60;
-    let timerInterval = null;
-
-    function updateDisplay() {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      document.getElementById('timer').textContent = 
-        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join('')));
     }
 
-    function startTimer() {
-      if (timerInterval) return;
-      timerInterval = setInterval(() => {
-        if (timeLeft > 0) {
-          timeLeft--;
-          updateDisplay();
-        } else {
-          clearInterval(timerInterval);
-          alert("Time's up! Take a break.");
-        }
-      }, 1000);
-    }
-
-    function pauseTimer() {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-
-    function resetTimer() {
-      pauseTimer();
-      timeLeft = 25 * 60;
-      updateDisplay();
-    }
-
-    // Task Logic
-    function addTask() {
-      const input = document.getElementById('taskInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const li = document.createElement('li');
-      li.innerHTML = `${text} <button style="background-color:#e74c3c; padding:4px 8px;" onclick="this.parentElement.remove()">✕</button>`;
-      document.getElementById('taskList').appendChild(li);
-      input.value = '';
+    function handleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      document.getElementById('userName').textContent = "Welcome, " + payload.name + "!";
+      document.getElementById('userEmail').textContent = payload.email;
+      document.getElementById('userPic').src = payload.picture;
+      document.getElementById('userInfo').style.display = 'block';
     }
   </script>
 
