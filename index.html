@@ -12,8 +12,15 @@
       --bg-color: #0f172a;
       --card-bg: #1e293b;
       --accent: #3b82f6;
+      --accent-hover: #2563eb;
       --text: #f8fafc;
       --subtext: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
@@ -25,21 +32,21 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      padding: 1rem;
     }
 
     .container {
       background: var(--card-bg);
       padding: 2.5rem;
       border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
       width: 100%;
-      max-width: 400px;
+      max-width: 480px;
       text-align: center;
     }
 
-    h1 {
+    h1, h2, h3 {
       margin-top: 0;
-      font-size: 1.8rem;
     }
 
     p {
@@ -49,38 +56,150 @@
 
     /* Avatar & User Info */
     .avatar {
-      width: 80px;
-      height: 80px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
       border: 3px solid var(--accent);
     }
 
-    /* Dashboard UI (Hidden before login) */
+    /* Hidden Sections */
     #appDashboard {
       display: none;
     }
 
-    .btn-logout {
-      background: #ef4444;
+    /* Buttons */
+    .btn {
+      background: var(--accent);
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 10px 18px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
-      margin-top: 15px;
-
+      transition: background 0.2s;
     }
 
-    .btn-logout:hover {
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+    .btn-danger:hover {
       background: #dc2626;
+    }
+
+    .btn-success {
+      background: var(--success);
     }
 
     .g_id_signin {
       display: flex;
       justify-content: center;
       margin-top: 1.5rem;
+    }
+
+    /* Timer Styles */
+    .timer-card {
+      background: #0f172a;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin: 1.5rem 0;
+    }
+
+    .timer-display {
+      font-size: 3.5rem;
+      font-weight: bold;
+      font-family: monospace;
+      color: var(--accent);
+      margin: 10px 0;
+    }
+
+    .preset-btns {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .preset-btn {
+      background: #334155;
+      color: var(--text);
+      border: none;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .preset-btn:hover {
+      background: var(--accent);
+    }
+
+    .timer-controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    /* Task List Styles */
+    .task-section {
+      text-align: left;
+      margin-top: 1.5rem;
+    }
+
+    .task-input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .task-input-group input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: white;
+      outline: none;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .task-item {
+      background: #0f172a;
+      padding: 10px 12px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .task-item.completed span {
+      text-decoration: line-through;
+      color: var(--subtext);
+    }
+
+    .task-actions button {
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+      font-size: 1rem;
+      margin-left: 5px;
+    }
+
+    .task-actions button:hover {
+      color: white;
     }
   </style>
 </head>
@@ -91,7 +210,7 @@
     <!-- 1. LOGIN SCREEN -->
     <div id="loginScreen">
       <h1>⏱️ Time Manager</h1>
-      <p>Sign in to access your dashboard</p>
+      <p>Sign in to unlock your productivity dashboard</p>
       
       <!-- Google Sign-In Setup -->
       <div id="g_id_onload"
@@ -102,24 +221,46 @@
       <div class="g_id_signin" data-type="standard"></div>
     </div>
 
-    <!-- 2. MAIN APP DASHBOARD (Revealed after sign-in) -->
+    <!-- 2. MAIN APP DASHBOARD -->
     <div id="appDashboard">
       <img id="userPic" class="avatar" src="" alt="Profile Picture">
       <h2 id="userName">Welcome!</h2>
-      <p id="userEmail"></p>
-      
+      <p id="userEmail" style="margin-bottom: 1rem;"></p>
+
+      <!-- TIMER SECTION -->
+      <div class="timer-card">
+        <h3>Focus Timer</h3>
+        <div class="preset-btns">
+          <button class="preset-btn" onclick="setTimer(15)">15 Min</button>
+          <button class="preset-btn" onclick="setTimer(25)">25 Min</button>
+          <button class="preset-btn" onclick="setTimer(45)">45 Min</button>
+        </div>
+        <div id="timerDisplay" class="timer-display">25:00</div>
+        <div class="timer-controls">
+          <button id="startBtn" class="btn btn-success" onclick="toggleTimer()">Start</button>
+          <button class="btn" onclick="resetTimer()">Reset</button>
+        </div>
+      </div>
+
+      <!-- TASK MANAGER SECTION -->
+      <div class="task-section">
+        <h3>My Time Tasks</h3>
+        <div class="task-input-group">
+          <input type="text" id="taskInput" placeholder="Add a new task...">
+          <button class="btn" onclick="addTask()">Add</button>
+        </div>
+        <ul id="taskList" class="task-list"></ul>
+      </div>
+
       <hr style="border-color: #334155; margin: 1.5rem 0;">
-
-      <p>🚀 <strong>Your Dashboard is Ready!</strong></p>
-      <p>Start managing your time and tasks effectively.</p>
-
-      <button class="btn-logout" onclick="logout()">Sign Out</button>
+      
+      <button class="btn btn-danger" onclick="logout()">Sign Out</button>
     </div>
 
   </div>
 
   <script>
-    // Decode Google JWT Token
+    // --- GOOGLE AUTHENTICATION ---
     function parseJwt(token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -128,23 +269,101 @@
       }).join('')));
     }
 
-    // Called automatically after successful login
     function handleCredentialResponse(response) {
       const payload = parseJwt(response.credential);
-
-      // Set user details
       document.getElementById('userName').textContent = payload.name;
       document.getElementById('userEmail').textContent = payload.email;
       document.getElementById('userPic').src = payload.picture;
 
-      // Hide Login, Show Dashboard
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('appDashboard').style.display = 'block';
     }
 
-    // Sign out function
     function logout() {
       location.reload();
+    }
+
+    // --- TIMER LOGIC ---
+    let timerInterval = null;
+    let totalSeconds = 25 * 60;
+    let isRunning = false;
+
+    function updateDisplay() {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      document.getElementById('timerDisplay').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+      const startBtn = document.getElementById('startBtn');
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        startBtn.textContent = 'Start';
+        startBtn.className = 'btn btn-success';
+      } else {
+        isRunning = true;
+        startBtn.textContent = 'Pause';
+        startBtn.className = 'btn';
+        timerInterval = setInterval(() => {
+          if (totalSeconds > 0) {
+            totalSeconds--;
+            updateDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            alert('Time is up!');
+            startBtn.textContent = 'Start';
+            startBtn.className = 'btn btn-success';
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById('startBtn').textContent = 'Start';
+      document.getElementById('startBtn').className = 'btn btn-success';
+      totalSeconds = 25 * 60;
+      updateDisplay();
+    }
+
+    function setTimer(minutes) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById('startBtn').textContent = 'Start';
+      document.getElementById('startBtn').className = 'btn btn-success';
+      totalSeconds = minutes * 60;
+      updateDisplay();
+    }
+
+    // --- TASK MANAGER LOGIC ---
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const ul = document.getElementById('taskList');
+      const li = document.createElement('li');
+      li.className = 'task-item';
+      li.innerHTML = `
+        <span onclick="toggleTask(this)" style="cursor:pointer;">${text}</span>
+        <div class="task-actions">
+          <button onclick="deleteTask(this)">❌</button>
+        </div>
+      `;
+      ul.appendChild(li);
+      input.value = '';
+    }
+
+    function toggleTask(element) {
+      element.parentElement.classList.toggle('completed');
+    }
+
+    function deleteTask(btn) {
+      btn.parentElement.parentElement.remove();
     }
   </script>
 
